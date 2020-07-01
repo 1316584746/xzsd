@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neusoft.bookstore.shoppingcar.mapper.ShoppingCarMapper">
+
+    
+    <resultMap id="baseMap" type="com.neusoft.bookstore.shoppingcar.model.ShoppingCar">
+        <id column="id" property="id"/>
+        <result column="sku_code" property="skuCode"/>
+        <result column="shop_num" property="shopNum"/>
+        <result column="business_code" property="businessCode"/>
+        <result column="order_user_id" property="orderUserId"/>
+        <result column="is_delete" property="isDelete"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="sku_name" property="skuName"/>
+        <result column="sale_price" property="salePrice"/>
+        <result column="userId" property="userId"/>
+    </resultMap>
+
+
+
+    <select id="findGoodsFromCar" resultMap="baseMap">
+         select
+          sku_code,
+          shop_num,
+          business_code,
+          order_user_id,
+          id,
+          is_delete,
+          created_time,
+          created_by,
+          updated_time,
+          updated_by
+          from
+           t_sys_shopping_car
+           where
+            is_delete=0
+            and sku_code=#{skuCode}
+            and business_code=#{businessCode}
+            and order_user_id=#{orderUserId}
+    </select>
+
+
+
+    <insert id="addShoppingCar" parameterType="com.neusoft.bookstore.shoppingcar.model.ShoppingCar">
+        insert into t_sys_shopping_car(
+             sku_code,
+             shop_num,
+             business_code,
+             order_user_id,
+             is_delete,
+             created_time,
+             created_by
+        ) values (
+        #{skuCode},
+        1,
+        #{businessCode},
+        #{orderUserId},
+        0,
+        now(),
+        #{createdBy}
+        )
+
+    </insert>
+
+
+    <update id="updateShoppingCar" parameterType="com.neusoft.bookstore.shoppingcar.model.ShoppingCar">
+        update t_sys_shopping_car
+        set
+        shop_num=#{shopNum},
+        updated_time=now(),
+        updated_by=#{updatedBy}
+        where
+        is_delete=0
+        and sku_code=#{skuCode}
+        and business_code=#{businessCode}
+        and order_user_id=#{orderUserId}
+
+    </update>
+
+
+    <select id="listGoodsFromCar" parameterType="integer" resultMap="baseMap">
+        select
+               tssc.sku_code,
+               tssc.shop_num,
+               tssc.business_code,
+               tssc.order_user_id,
+               tssc.id,
+               tssc.is_delete,
+               tssc.created_time,
+               tssc.created_by,
+               tssc.updated_time,
+               tssc.updated_by,
+               tsg.sku_name,
+               tsg.sale_price
+        from
+             t_sys_shopping_car tssc inner join t_sys_goods tsg
+                     on  tssc.sku_code=tsg.sku_code
+        where tssc.is_delete=0
+        and order_user_id=#{userId}
+          <!-- <if test="userId != null" >
+              and order_user_id=#{userId}
+           </if>-->
+    </select>
+
+
+
+    <delete id="deleteGoodsFromCar" parameterType="com.neusoft.bookstore.shoppingcar.model.ShoppingCar">
+        delete from t_sys_shopping_car
+        where
+          is_delete=0
+          and sku_code=#{skuCode}
+          and order_user_id=#{orderUserId}
+          and business_code=#{businessCode}
+    </delete>
+
+
+    <delete id="deleteCarById" parameterType="integer">
+        delete from t_sys_shopping_car
+        where
+          is_delete=0
+          and order_user_id=#{id}
+    </delete>
+</mapper>

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neusoft.bookstore.order.mapper.OrderMapper">
+    <resultMap id="DetailMap" type="com.neusoft.bookstore.order.model.OrderDetails">
+        <id column="id" property="id"/>
+        <result column="order_code" property="orderCode"/>
+        <result column="business_code" property="businessCode"/>
+        <result column="sku_code" property="skuCode"></result>
+        <result column="shop_num" property="shopNum"></result>
+        <result column="sku_amount" property="skuAmount"></result>
+        <result column="sku_name" property="skuName"></result>
+        <result column="cost_price" property="costPrice"></result>
+        <result column="sale_price" property="salePrice"></result>
+        <result column="is_delete" property="isDelete"></result>
+        <result column="created_time" property="createdTime"></result>
+        <result column="created_by" property="createdBy"></result>
+        <result column="updated_time" property="updatedTime"></result>
+        <result column="updated_by" property="updatedBy"></result>
+        <result column="images_path" property="imagesPath"></result>
+        <result column="sku_introduction" property="skuIntroduction"/>
+    </resultMap>
+
+    <resultMap id="OrderMap" type="com.neusoft.bookstore.order.model.Order">
+        <id column="id" property="id"/>
+        <result column="order_code" property="orderCode"/>
+        <result column="business_code" property="businessCode"/>
+        <result column="order_user_id" property="orderUserId"></result>
+        <result column="order_status" property="orderStatus"></result>
+        <result column="pay_status" property="payStatus"></result>
+        <result column="order_amount" property="orderAmount"></result>
+        <result column="orderStatusName" property="orderStatusName"></result>
+        <result column="payStatusName" property="payStatusName"></result>
+        <result column="user_name" property="userName"></result>
+        <result column="phone" property="phone"></result>
+        <result column="is_delete" property="isDelete"></result>
+        <result column="created_time" property="createdTime"></result>
+        <result column="created_by" property="createdBy"></result>
+        <result column="updated_time" property="updatedTime"></result>
+        <result column="updated_by" property="updatedBy"></result>
+        <result column="orderStartTime" property="orderStartTime"></result>
+        <result column="orderEndTime" property="orderEndTime"></result>
+    </resultMap>
+    <!--新建订单-->
+    <insert id="addOrderDetail" parameterType="com.neusoft.bookstore.order.model.OrderDetails">
+        insert  into t_sys_order_details(
+                        order_code,
+                        sku_code,
+                        shop_num,
+                        sku_amount,
+                        is_delete,
+                        created_time,
+                        created_by
+                )
+        values (
+                #{orderCode},
+                #{skuCode},
+                #{shopNum},
+                #{skuAmount},
+                0,
+                now(),
+                #{createdBy}
+
+                       )
+    </insert>
+    <!--生成订单-->
+    <insert id="addOrder" parameterType="com.neusoft.bookstore.order.model.Order" >
+        insert  into  t_sys_order(
+                order_code,
+                business_code,
+                order_user_id,
+                order_status,
+                pay_status,
+                order_amount,
+                is_delete,
+                created_time,
+                created_by
+
+                )
+        values (
+              #{orderCode},
+              #{businessCode},
+              #{orderUserId},
+              #{orderStatus},
+              #{payStatus},
+              #{orderAmount},
+              0,
+              now(),
+              #{orderUserId}
+                       )
+    </insert>
+    <!--订单列表查询-->
+    <select id="listOrder"  parameterType="com.neusoft.bookstore.order.model.Order" resultMap="OrderMap">
+        select
+        tso.order_code,
+        tso.business_code,
+        tso.order_user_id,
+        tso.order_status,
+        case
+            when tso.order_status=0 then '已下单'
+            when tso.order_status=1 then '已发货'
+            when tso.order_status=2 then '已下单'
+            when tso.order_status=3 then '已下单'
+          else  '已取消'
+        end  orderStatusName,
+        tso.pay_status,
+        case
+        when  tso.pay_status=0 then '未支付'
+        when  tso.pay_status=1 then '已支付'
+        when  tso.pay_status=2 then '退款中'
+        else  '已退款'
+        end  payStatusName,
+        tso.order_amount,
+        tso.id,
+        tso.is_delete,
+        tso.created_time,
+        tso.created_by,
+        tso.updated_time,
+        tso.updated_by,
+        tsc.user_name,
+        tsc.phone
+        from t_sys_order tso inner join t_sys_customer tsc
+        on tso.order_user_id=tsc.id
+        where  tsc.is_delete=0
+        <if test="orderUserId !=null">
+            and tso.order_user_id=#{orderUserId}
+        </if>
+        <if test="orderCode!=null and orderCode!=''">
+           and tso.order_code LIKE concat('%',#{orderCode},'%')
+        </if>
+        <if test="orderStatus!=null and orderStatus!=''">
+            and tso.order_status LIKE concat('%',#{orderStatus},'%')
+        </if>
+        <if test="phone!=null and phone!=''">
+            and tsc.phone LIKE concat('%',#{phone},'%')
+        </if>
+        <if test="userName!=null and userName!=''">
+            and tsc.user_name LIKE concat('%',#{userName},'%')
+        </if>
+        <if test="orderStartTime!=null">
+            and tso.created_time>=#{orderStartTime}
+        </if>
+        <if test="orderEndTime!=null">
+            and tso.created_time&lt;= #{orderEndTime}
+        </if>
+
+    </select>
+    <!--详情查询-->
+    <select id="findOrderDetailByOrderCode" resultMap="DetailMap" >
+        SELECT  tso.*,tsg.sku_name,tsg.cost_price,tsg.sale_price,tsg.sku_introduction
+        FROM t_sys_order_details tso INNER JOIN
+                     t_sys_goods tsg
+                     ON tso.sku_code=tsg.sku_code
+        where
+              tsg.is_delete=0
+        and  tso.order_code=#{orderCode}
+
+    </select>
+    <!--app端t订单详情查询-->
+    <select id="appFindOrderDetails" resultMap="DetailMap" parameterType="string">
+        SELECT  tso.*,
+                tsg.sku_name,
+                tsg.cost_price,
+                tsg.sale_price,
+                tsg.created_time,
+                tsg.sku_introduction
+         FROM t_sys_order_details tso INNER JOIN
+                     t_sys_goods tsg
+                     ON tso.sku_code=tsg.sku_code
+
+        where
+                tsg.is_delete=0
+              and  order_code=#{orderCode}
+
+    </select>
+
+
+
+</mapper>

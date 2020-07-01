@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neusoft.bookstore.statisticsinfo.mapper.StatisticsInfoMapper">
+
+
+    <!--查询用户人数-->
+    <select id="selectCustomer" resultType="java.lang.Integer">
+        select count(user_account)
+        FROM t_sys_customer
+        where is_delete=0
+    </select>
+    <!--性别产寻-->
+    <select id="findSexMan" resultType="java.lang.Integer">
+        select count(user_account)
+        FROM t_sys_customer
+        where is_delete=0
+        and  user_sex='男'
+    </select>
+
+    <select id="findSexWomen" resultType="java.lang.Integer">
+        select count(user_account)
+        FROM t_sys_customer
+        where is_delete=0
+          and  user_sex='女'
+    </select>
+    <!--分类名称查询-->
+    <select id="cateName" resultType="string">
+        SELECT  cate_name
+        FROM t_sys_cate
+        where is_delete=0
+        and parent_cate_code!=0
+    </select>
+    <!--分类下面的商品的数量-->
+    <select id="findCateGoodsNum" resultType="integer">
+        SELECT sum(tsg.store_num)
+        FROM t_sys_goods tsg RIGHT  JOIN t_sys_cate tsc
+                     ON tsg.second_cate_code =tsc.cate_code
+        WHERE tsc.is_delete=0
+          and tsg.sku_status=0
+          and tsc.cate_name=#{cateName}
+    </select>
+    <select id="orderNum" resultType="java.lang.Integer">
+        select  count(order_code)
+        from t_sys_order
+        where is_delete=0
+        and order_status=0
+    </select>
+    <select id="orderFinishNum" resultType="java.lang.Integer">
+        select  count(order_code)
+        from t_sys_order
+        where is_delete=0
+          and order_status=2
+    </select>
+
+
+</mapper>

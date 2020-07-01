@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neusoft.bookstore.goods.mapper.GoodsMapper">
+
+
+    <resultMap id="baseMap" type="com.neusoft.bookstore.goods.model.Goods">
+        <id column="id" property="id"></id>
+        <result column="sku_name" property="skuName"></result>
+        <result column="isbn" property="isbn"></result>
+        <result column="first_cate_code" property="firstCateCode"></result>
+        <result column="second_cate_code" property="secondCateCode"></result>
+        <result column="sku_ad" property="skuAd"></result>
+        <result column="sku_introduction" property="skuIntroduction"></result>
+        <result column="business_code" property="businessCode"></result>
+        <result column="store_num" property="storeNum"></result>
+        <result column="cost_price" property="costPrice"></result>
+        <result column="sale_price" property="salePrice"></result>
+        <result column="sku_status" property="skuStatus"></result>
+        <result column="sku_code" property="skuCode"></result>
+        <result column="sale_num" property="saleNum"></result>
+        <result column="sale_time" property="saleTime"></result>
+        <result column="is_delete" property="isDelete"></result>
+        <result column="created_time" property="createdTime"></result>
+        <result column="created_by" property="createdBy"></result>
+        <result column="updated_time" property="updatedTime"></result>
+        <result column="updated_by" property="updatedBy"></result>
+        <result column="skuStatusName" property="skuStatusName"></result>
+        <result column="firstCateCode" property="firstCateCode"></result>
+        <result column="secondCateCode" property="secondCateCode"></result>
+        <result column="businessName" property="businessName"></result>
+    </resultMap>
+
+
+    <insert id="addGoods" parameterType="com.neusoft.bookstore.goods.model.Goods">
+        insert into t_sys_goods(
+                sku_name,
+                isbn,
+                first_cate_code,
+                second_cate_code,
+                sku_ad,
+                sku_introduction,
+                business_code,
+                store_num,
+                cost_price,
+                sale_price,
+                sku_status,
+                sku_code,
+                sale_num,
+                is_delete,
+                created_time,
+                created_by
+                )
+        values (
+                       #{skuName},
+                       #{isbn},
+                       #{firstCateCode},
+                       #{secondCateCode},
+                       #{skuAd},
+                       #{skuIntroduction},
+                       #{businessCode},
+                       #{storeNum},
+                       #{costPrice},
+                       #{salePrice},
+                       #{skuStatus},
+                       #{skuCode},
+                       0,
+                       0,
+                       now(),
+                       #{createdBy}
+                       )
+    </insert>
+
+
+
+    <insert id="addImages" parameterType="com.neusoft.bookstore.goods.model.GoodsImage">
+        insert into t_sys_goods_images(
+                sku_code,
+                sku_images_path,
+                is_delete,
+                created_time,
+                created_by
+
+                )values (
+                                #{skuCode},
+                                #{skuImagesPath},
+                                0,
+                                now(),
+                                #{createdBy}
+                                )
+    </insert>
+
+
+    <update id="updateGoodsInfo" parameterType="com.neusoft.bookstore.goods.model.Goods">
+        update
+                t_sys_goods
+        set
+            sku_name=#{skuName},
+            isbn=#{isbn},
+            first_cate_code=#{firstCateCode},
+            second_cate_code=#{secondCateCode},
+            sku_ad=#{skuAd},
+            sku_introduction=#{skuIntroduction},
+            business_code=#{businessCode},
+            store_num=#{storeNum},
+            cost_price=#{costPrice},
+            sale_price=#{salePrice},
+            sku_status=#{skuStatus},
+            updated_time=now(),
+            updated_by=#{updatedBy}
+        WHERE
+                is_delete=0
+          AND sku_code=#{skuCode}
+    </update>
+
+
+    <update id="updateGoodsStatus" parameterType="string">
+        update
+                t_sys_goods
+        set
+            sku_status=#{status},
+            updated_time=now(),
+            updated_by=#{updatedBy}
+        where
+                is_delete=0
+          AND sku_code=#{skuCode}
+    </update>
+
+
+    <update id="updateGoodsStoreAndSaNum" parameterType="map">
+        update t_sys_goods
+        set
+            store_num=store_num-#{shopNum},
+            sale_num=sale_num+#{shopNum}
+        where
+                is_delete=0
+          AND sku_code=#{skuCode}
+
+    </update>
+
+
+    <delete id="deleteGoodsImages">
+        delete from t_sys_goods_images where sku_code=#{skuCode}
+    </delete>
+
+    <delete id="deleteGoods" parameterType="string">
+        delete from t_sys_goods where sku_code=#{skuCode}
+    </delete>
+
+
+    <select id="listBusiness" resultType="map">
+        select
+               id,
+               business_code businessCode,
+               business_name businessName
+        from
+             t_sys_business
+        where
+                is_delete=0
+    </select>
+
+
+
+    <select id="findGoodsByCondition" resultMap="baseMap" parameterType="com.neusoft.bookstore.goods.model.Goods">
+        SELECT
+        sku_name,
+        isbn,
+        first_cate_code,
+        second_cate_code,
+        sku_ad,
+        sku_introduction,
+        business_code,
+        store_num,
+        cost_price,
+        sale_price,
+        sku_status,
+        sku_code,
+        sale_num,
+        sale_time,
+        id,
+        is_delete,
+        created_time,
+        created_by,
+        updated_time,
+        updated_by
+        from
+        t_sys_goods
+        where
+        is_delete=0
+        and isbn=#{isbn}
+        and business_code=#{businessCode}
+        and sku_name=#{skuName}
+        and first_cate_code=#{firstCateCode}
+        <if test="secondCateCode!=null and secondCateCode!=''">
+            and second_cate_code=#{secondCateCode}
+        </if>
+        <if test="skuCode!=null and skuCode!=''">
+            and sku_code !=#{skuCode}
+        </if>
+
+    </select>
+
+
+
+    <select id="listGoods" resultMap="baseMap" parameterType="com.neusoft.bookstore.goods.model.Goods">
+        SELECT
+        tsg.sku_name,
+        tsg.isbn,
+        tsg.first_cate_code,
+        tsg.second_cate_code,
+        tsg.sku_ad,
+        tsg.sku_introduction,
+        tsg.business_code,
+        tsg.store_num,
+        tsg.cost_price,
+        tsg.sale_price,
+        tsg.sku_status,
+        CASE
+        WHEN tsg.sku_status=0 THEN '在售'
+        WHEN tsg.sku_status=1 THEN '已下架'
+        ELSE '未发布'
+        END skustatusName,
+        tsg.sku_code,
+        tsg.sale_num,
+        tsg.sale_time,
+        tsg.id,
+        tsg.is_delete,
+        tsg.created_time,
+        tsg.created_by,
+        tsg.updated_time,
+        tsg.updated_by,
+        tsc.cate_name firstCateName,
+        tsc.cate_name secondCateName,
+        tsb.business_name businessName
+        from
+        t_sys_goods tsg
+        INNER JOIN t_sys_cate tsc on tsg.first_cate_code=tsc.cate_code
+        LEFT JOIN t_sys_cate tscs ON tsg.second_cate_code=tscs.cate_code
+        INNER JOIN t_sys_business tsb ON tsb.business_code=tsg.business_code
+        where
+        tsg.is_delete=0
+        <if test="skuName!=null and skuName!=''">
+            and tsg.sku_name like concat('%',#{skuName},'%')
+        </if>
+        <if test="skuStatus!=null">
+            and tsg.sku_status=#{skuStatus}
+        </if>
+        <if test="skuAd!=null and skuAd!=''">
+            and tsg.sku_ad like concat('%',#{skuAd},'%')
+        </if>
+
+    </select>
+    <select id="findImagesBySkuCode" resultType="java.lang.String" parameterType="string">
+        select
+               sku_images_path skuImagesPath
+        from
+             t_sys_goods_images
+        where
+                is_delete=0
+          and sku_code=#{skuCode}
+
+    </select>
+
+
+    <select id="findGoodsBySkuCode" resultMap="baseMap"  parameterType="string">
+        SELECT
+               sku_name,
+               isbn,
+               first_cate_code,
+               second_cate_code,
+               sku_ad,
+               sku_introduction,
+               business_code,
+               store_num,
+               cost_price,
+               sale_price,
+               sku_status,
+               sku_code,
+               sale_num,
+               sale_time,
+               id,
+               is_delete,
+               created_time,
+               created_by,
+               updated_time,
+               updated_by
+        from
+             t_sys_goods
+        where
+                is_delete=0
+          and sku_code=#{skuCode}
+
+    </select>
+
+
+    <select id="findBusinessByCode" resultType="Map" parameterType="string">
+        SELECT
+
+               business_code businessCode,
+               business_name businessName
+        from
+             t_sys_business
+        where
+                is_delete=0
+          and business_code=#{businessCode}
+    </select>
+
+
+</mapper>

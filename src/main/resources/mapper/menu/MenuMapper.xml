@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neusoft.bookstore.menu.mapper.MenuMapper">
+        <resultMap id="baseMap" type="com.neusoft.bookstore.menu.model.Menu">
+            <id column="id" property="id"/>
+            <result column="menu_name" property="menuName"/>
+            <result column="menu_code" property="menuCode"/>
+            <result column="type" property="type"/>
+            <result column="menu_url" property="menuUrl"/>
+            <result column="remark" property="remark"/>
+            <result column="parent_menu_code" property="parentMenuCode"/>
+            <result column="is_delete" property="isDelete"></result>
+            <result column="created_time" property="createdTime"></result>
+            <result column="created_by" property="createdBy"></result>
+            <result column="updated_time" property="updatedTime"></result>
+            <result column="updated_by" property="updatedBy"></result>
+        </resultMap>
+
+    <!--查询菜单名重复-->
+    <select id="findMenuByParentMenuCodeAndName" resultMap="baseMap" parameterType="com.neusoft.bookstore.menu.model.Menu">
+        select  menu_name,
+                menu_code,
+                type,
+                menu_url,
+                remark,
+                parent_menu_code,
+                id,
+                is_delete,
+                created_time,
+                created_by,
+                updated_time
+        from  t_sys_menu
+        where is_delete=0
+        and   parent_menu_code=#{parentMenuCode}
+        and menu_name=#{menuName}
+        <if test="menuCode!=null and menuCode!=''">
+            and menu_code !=#{menuCode}
+        </if>
+
+    </select>
+
+    <!--查询父级菜单类型-->
+    <select id="findMenuByMenuCode" resultMap="baseMap" parameterType="string">
+        select  menu_name,
+                menu_code,
+                type,
+                menu_url,
+                remark,
+                parent_menu_code,
+                id,
+                is_delete,
+                created_time,
+                created_by,
+                updated_time
+        from  t_sys_menu
+        where is_delete=0
+         and  menu_code=#{menuCode}
+    </select>
+
+    <!--更新父级的url 和 type值-->
+    <update id="updateTypeAndUrlBycode" parameterType="string">
+        update  t_sys_menu set  type=1,menu_url=null
+         where menu_code=#{menuCode}
+           and is_delete=0
+    </update>
+
+    <!--新增菜单-->
+    <insert id="insertMenu" parameterType="com.neusoft.bookstore.menu.model.Menu">
+        insert into t_sys_menu(
+                menu_name,
+                menu_code,
+                type,
+                menu_url,
+                remark,
+                parent_menu_code,
+                is_delete,
+                created_time,
+                created_by
+                )values (
+                     #{menuName},
+                     REPLACE(uuid(),'-',''),
+                     #{type},
+                     #{menuUrl},
+                     #{remark},
+                     #{parentMenuCode},
+                     0,
+                     now(),
+                     #{createdBy}
+                                                    )
+
+    </insert>
+<!--查询所有数据-->
+    <select id="listMenuTree" resultMap="baseMap">
+        select *
+        from  t_sys_menu
+        where is_delete=0
+    </select>
+
+    <!--修改菜单信息-->
+    <update id="updateMenuByCode" parameterType="com.neusoft.bookstore.menu.model.Menu">
+        update t_sys_menu
+        set menu_name=#{menuName},menu_url=#{menuUrl},type=#{type},remark=#{remark},updated_by=#{updatedBy},updated_time=now()
+        where menu_code=#{menuCode}
+          and is_delete=0
+    </update>
+    <!--查询当前节点下是否有子节点-->
+    <select id="findChildMenus" resultMap="baseMap" parameterType="string">
+        select  *
+        from t_sys_menu
+        where is_delete=0
+        and  parent_menu_code=#{menuCode}
+    </select>
+<!--删除菜单&#45;&#45;逻辑删除-->
+    <update id="deleteMenuByCode" parameterType="string">
+        update  t_sys_menu
+         set is_delete=1
+        where  menu_code=#{menuCode} and is_delete=0
+    </update>
+</mapper>

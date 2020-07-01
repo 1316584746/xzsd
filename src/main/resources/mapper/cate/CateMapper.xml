@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neusoft.bookstore.cate.mapper.CateMapper">
+
+
+    <resultMap id="baseMap" type="com.neusoft.bookstore.cate.model.Cate">
+        <id column="id" property="id"/>
+        <result column="cate_name" property="cateName"/>
+        <result column="cate_code" property="cateCode"/>
+        <result column="remark" property="remark"/>
+        <result column="parent_cate_code" property="parentCateCode"/>
+        <result column="is_delete" property="isDelete"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="updated_by" property="updatedBy"/>
+    </resultMap>
+    <insert id="insertCate">
+        insert into t_sys_cate
+        (
+            cate_name,
+            cate_code,
+            remark,
+            parent_cate_code,
+            is_delete,
+            created_time,
+            created_by
+        )values(
+        #{cateName},
+        replace(uuid(),'-',''),
+        #{remark},
+        #{parentCateCode},
+        0,
+        now(),
+        #{createdBy}
+        )
+    </insert>
+    <update id="updateCateByCode">
+        update t_sys_cate set
+        cate_name = #{cateName},
+        remark = #{remark},
+        updated_by = #{updatedBy},
+        updated_time = now()
+        where
+        cate_code = #{cateCode}
+        and
+        is_delete = 0
+
+
+    </update>
+    <delete id="deleteCateByCode">
+        update t_sys_cate
+        set is_delete = 1
+        where cate_code = #{cateCode} and is_delete = 0
+    </delete>
+    <select id="findCateByParentCateCodeAndName" resultMap="baseMap" parameterType="com.neusoft.bookstore.cate.model.Cate">
+        select
+        cate_name,
+        cate_code,
+        remark,
+        parent_cate_code,
+        id,
+        is_delete,
+        created_time,
+        created_by,
+        updated_time,
+        updated_by
+        from
+        t_sys_cate
+        where is_delete = 0
+        And parent_cate_code = #{parentCateCode}
+        and cate_name = #{cateName}
+
+        <if test="cateCode != null and cateCode != ''">
+            and cate_code != #{cateCode}
+        </if>
+    </select>
+    <select id="findCateByCateCode" resultMap="baseMap" parameterType="string">
+        select
+            cate_name,
+            cate_code,
+            remark,
+            parent_cate_code,
+            id,
+            is_delete,
+            created_time,
+            created_by,
+            updated_time,
+            updated_by
+            from
+            t_sys_cate
+            where is_delete = 0
+            and cate_code = #{cateCode}
+    </select>
+    <select id="findChildCates" resultMap="baseMap" parameterType="string">
+           select
+            cate_name,
+            cate_code,
+            remark,
+            parent_cate_code,
+            id,
+            is_delete,
+            created_time,
+            created_by,
+            updated_time,
+            updated_by
+            from
+            t_sys_cate
+            where is_delete = 0
+            and parent_cate_code = #{cateCode}
+    </select>
+    <select id="listCates" resultMap="baseMap">
+        select
+                cate_name,
+                cate_code,
+                remark,
+                parent_cate_code,
+                id,
+                is_delete,
+                created_time,
+                created_by,
+                updated_time,
+                updated_by
+            from
+                t_sys_cate
+            where is_delete = 0
+    </select>
+    <select id="findcateByParentcateCode" resultMap="baseMap" parameterType="string">
+        select
+        cate_name,
+        cate_code,
+        remark,
+        parent_cate_code,
+        id,
+        is_delete,
+        created_time,
+        created_by,
+        updated_time,
+        updated_by
+        from
+        t_sys_cate
+        where is_delete = 0
+        And parent_cate_code = #{cateCode}
+
+    </select>
+    <select id="findCateByCateCode1" resultType="java.lang.Integer">
+            select count(1) from t_sys_goods where (first_cate_code = #{cateCode} or second_cate_code = #{cateCode})and is_delete = 0
+    </select>
+
+</mapper>

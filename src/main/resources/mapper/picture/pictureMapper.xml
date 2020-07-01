@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neusoft.bookstore.picture.mapper.PictureMapper">
+
+
+    <resultMap id="baseMap" type="com.neusoft.bookstore.picture.model.Picture">
+        <id column="id" property="id"/>
+        <result column="pic_url" property="picUrl"/>
+        <result column="pic_status" property="picStatus"/>
+
+        <result column="pic_status_name" property="picStatusName"/>
+        <result column="is_delete" property="isDelete"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="updated_by" property="updatedBy"/>
+    </resultMap>
+
+
+    <insert id="addPicture" parameterType="com.neusoft.bookstore.picture.model.Picture">
+        insert into t_sys_picture(
+                pic_url,
+                pic_status,
+                is_delete,
+                created_time,
+                created_by
+                )values (
+                                #{picUrl},
+                                2,
+                                0,
+                                now(),
+                                #{createdBy}
+                                )
+
+    </insert>
+
+    
+
+    <update id="updatePic" parameterType="com.neusoft.bookstore.picture.model.Picture">
+        update
+        t_sys_picture
+        set
+        <if test="picStatus!=null">
+            pic_status=#{picStatus},
+        </if>
+        <if test="picStatus==null">
+            is_delete=1,
+        </if>
+        updated_time=now(),
+        updated_by=#{updatedBy}
+        where id=#{id}
+        and is_delete=0
+    </update>
+
+
+    <select id="listPic" resultMap="baseMap" parameterType="com.neusoft.bookstore.picture.model.Picture">
+        select pic_url,
+        pic_status,
+        case
+        WHEN  pic_status=1 then '启用'
+        else  '禁用'
+        end  pic_status_name,
+        id,
+        is_delete,
+        created_time,
+        created_by,
+        updated_time,
+        updated_by
+        from   t_sys_picture
+        where  is_delete=0
+        <if test="picStatus!=null">
+            and  pic_status=#{picStatus}
+        </if>
+    </select>
+
+
+
+</mapper>
